@@ -1,0 +1,18 @@
+
+Library
+Temp
+*.bat
+*.csproj
+*.csproj.user
+*.booproj
+*.pidb
+*.sln
+*.sln.meta
+*.suo
+*.unityproj
+*.userprefs
+*.userprefs.meta
+*~
+.DS_Store
+*[! -~]*
+*.pidb.meta
