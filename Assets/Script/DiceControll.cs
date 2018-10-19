@@ -21,7 +21,7 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
     float z_hantei = 0;
     public StageSetting stageSetting;
 
-
+    float rayMaxDistance = 1.0f;
     //現在地
     [SerializeField]
     private int dicePosX = 1;
@@ -36,6 +36,7 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
     [SerializeField]
     int upNumber;//上面の数字
 
+    [SerializeField]
     int chainCount;//chein終端が上面の数以上ならbanish
 
     GameObject firstChainObj;//コンボの発火点
@@ -68,29 +69,31 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
        
     }
 
-    void ReceivePoint(GameObject firstObj)
+    void ReceivePoint(GameObject chainFirstObj)
     {
         int wasdCheckFlag;
 
         wasdCheckFlag = 0;
         //上面数字更新判定 
         NumberCheck();
+        chainCheckFlag = true;//二度付け禁止フラグオン
 
-        firstDiceControll = firstChainObj.GetComponent<DiceControll>();
+        firstDiceControll = chainFirstObj.GetComponent<DiceControll>();
         firstDiceControll.chainCount += 1;
         if (firstDiceControll.chainCount >= firstDiceControll.upNumber)
         {
             banishFlag = true;
             Banish();
 
-        }else if (firstDiceControll.chainCount < firstDiceControll.upNumber)
+        }
+        else if (firstDiceControll.chainCount < firstDiceControll.upNumber)
         {
             bool stackChecker = false;
             for (int i = 0; stackChecker == true;i++)
             {
                 if (firstDiceControll.stackControll[i]==null)
                 {
-                    firstDiceControll.stackControll[i] = gameObject.GetComponent<DiceControll>();
+                    firstDiceControll.stackControll[i] = this.gameObject.GetComponent<DiceControll>();
                     stackChecker = true;
                 }
                 if (i >= 5)
@@ -106,57 +109,65 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
        
         
         //四方
-        if (Physics.Raycast(transform.position, Vector3.forward, out receiveChain))
+        if (Physics.Raycast(transform.position, Vector3.forward, out receiveChain,rayMaxDistance))
         {
             if (receiveChain.collider.tag == "dice")
             {
-                chainDiceControll= receiveChain.collider.gameObject.GetComponent<DiceControll>();
-                if (upNumber == chainDiceControll.upNumber)
+                Debug.Log(receiveChain.collider.tag);
+                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
+                if (upNumber == chainDiceControll.upNumber&&chainDiceControll.chainCheckFlag==false)
                 {
                     chainDiceControll.ReceivePoint(firstChainObj);
                 }
+                else { wasdCheckFlag += 1; }
             }
-            else { wasdCheckFlag += 1; }
             
         }
-        if (Physics.Raycast(transform.position, Vector3.back, out receiveChain))
+        if (Physics.Raycast(transform.position, Vector3.back, out receiveChain, rayMaxDistance))
         {
             if (receiveChain.collider.tag == "dice")
             {
+                Debug.Log(receiveChain.collider.tag);
                 chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
-                if (upNumber == chainDiceControll.upNumber)
+                if (upNumber == chainDiceControll.upNumber&&chainDiceControll.chainCheckFlag==false)
                 {
                     chainDiceControll.ReceivePoint(firstChainObj);
                 }
+                else { wasdCheckFlag += 1; }
             }
-            else { wasdCheckFlag += 1; }
         }
-        if (Physics.Raycast(transform.position, Vector3.left, out receiveChain))
+        if (Physics.Raycast(transform.position, Vector3.left, out receiveChain, rayMaxDistance))
         {
             if (receiveChain.collider.tag == "dice")
             {
+                Debug.Log(receiveChain.collider.tag);
                 chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
-                if (upNumber == chainDiceControll.upNumber)
+                if (upNumber == chainDiceControll.upNumber&&chainDiceControll.chainCheckFlag==false)
                 {
                     chainDiceControll.ReceivePoint(firstChainObj);
                 }
+                else { wasdCheckFlag += 1; }
             }
-            else { wasdCheckFlag += 1; }
         }
-        if (Physics.Raycast(transform.position, Vector3.right, out receiveChain))
+        if (Physics.Raycast(transform.position, Vector3.right, out receiveChain, rayMaxDistance))
         {
             if (receiveChain.collider.tag == "dice")
             {
+                Debug.Log(receiveChain.collider.tag);
                 chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
-                if (upNumber == chainDiceControll.upNumber)
+                if (upNumber == chainDiceControll.upNumber&&chainDiceControll.chainCheckFlag==false)
                 {
                     chainDiceControll.ReceivePoint(firstChainObj);
                 }
+                else { wasdCheckFlag += 1; }
             }
-            else { wasdCheckFlag += 1; }
         }
-
-        if (wasdCheckFlag == 4&&firstDiceControll.banishFlag==false)
+        if(wasdCheckFlag == 4&& firstDiceControll.chainCount < firstDiceControll.upNumber)//連鎖数不足の場合chainncountを0に
+        {
+            firstDiceControll.chainCheckFlag = false;
+            firstDiceControll.chainCount = 0;
+        }
+        if (wasdCheckFlag == 4&&firstDiceControll.banishFlag==false && firstDiceControll.chainCount >= firstDiceControll.upNumber)
         {
             StackBanish();
             firstDiceControll.banishFlag=true;
@@ -184,9 +195,9 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
 
     public void Banish()
     {
-        iTween.ScaleTo(gameObject, iTween.Hash("x", 10f,
+        iTween.ScaleTo(gameObject, iTween.Hash("x", 1.1f,
                 "time", 1.5f,
-                "oncomplete", "Banish",
+                "oncomplete", "OncompleteBanish",
                 "oncompletetarget", this.gameObject));
     }
     public void OncompleteBanish()
@@ -220,10 +231,21 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
         RaycastHit chain;//連鎖時用
         //上面数字更新判定
         NumberCheck();
+        //Raycast位置ずらし用vec3
+        Vector3 Raypos1 = transform.position;
+        Vector3 Raypos2 = transform.position;
+        Vector3 Raypos3 = transform.position;
+        Vector3 Raypos4 = transform.position;
+
+        Raypos1 += new Vector3(0,0,0.35f);
+        Raypos2 += new Vector3(0,0,-0.35f);
+        Raypos3 += new Vector3(-0.35f,0,0);
+        Raypos4 += new Vector3(0.35f,0,0);
         //四方
-        if (Physics.Raycast(transform.position, Vector3.forward, out chain))
+        if (Physics.Raycast(Raypos1, Vector3.forward, out chain, rayMaxDistance))
         {
-            Debug.Log(chain.collider.tag);
+
+            //debug.log(chain.collider.tag);
             if (chain.collider.tag == "dice")
             {
                 chainDiceControll = chain.collider.gameObject.GetComponent<DiceControll>();
@@ -238,9 +260,9 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
                 }
             }
         }
-        if (Physics.Raycast(transform.position, Vector3.back, out chain))
+        if (Physics.Raycast(Raypos2, Vector3.back, out chain, rayMaxDistance))
         {
-            Debug.Log(chain.collider.tag);
+            //debug.log(chain.collider.tag);
             if (chain.collider.tag == "dice")
             {
                 chainDiceControll = chain.collider.gameObject.GetComponent<DiceControll>();
@@ -255,9 +277,9 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
                 }
             }
         }
-        if (Physics.Raycast(transform.position, Vector3.left, out chain))
+        if (Physics.Raycast(Raypos3, Vector3.left, out chain, rayMaxDistance))
         {
-            Debug.Log(chain.collider.tag);
+            //debug.log(chain.collider.tag);
             if (chain.collider.tag == "dice")
             {
                 chainDiceControll = chain.collider.gameObject.GetComponent<DiceControll>();
@@ -272,9 +294,9 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
                 }
             }
         }
-        if (Physics.Raycast(transform.position, Vector3.right, out chain))
+        if (Physics.Raycast(Raypos4, Vector3.right, out chain, rayMaxDistance))
         {
-            Debug.Log(chain.collider.tag);
+            //debug.log(chain.collider.tag);
             if (chain.collider.tag == "dice")
             {
                 chainDiceControll = chain.collider.gameObject.GetComponent<DiceControll>();
