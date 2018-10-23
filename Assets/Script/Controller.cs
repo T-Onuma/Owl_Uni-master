@@ -62,9 +62,10 @@ public class Controller : MonoBehaviour
 
         if (!iTweenMoving && Input.GetKey("up")&& posY >= 1)//↑
         {
+            iTween.RotateTo(this.gameObject, iTween.Hash("y", 270f, "time", 0.02f));
             if (height == 1&&Physics.Raycast(transform.position, Vector3.down, out dice, maxDistance))
             {
-                if (dice.collider.tag == "dice")
+                if (dice.collider.tag == "dice"&&!transparentFlag)
                 {
                     remoteDice = dice.collider.gameObject.GetComponent<DiceControll>();
                     remoteDice.ForwardRotate();
@@ -88,7 +89,6 @@ public class Controller : MonoBehaviour
             }
 
             f_posY -= 1;
-            iTween.RotateTo(this.gameObject, iTween.Hash("y", 270f, "time", 0.02f));
             // 処理中のフラグをたてとく。
             iTweenMoving = true;
             iTween.MoveAdd(this.gameObject, iTween.Hash(
@@ -103,9 +103,10 @@ public class Controller : MonoBehaviour
        
         if (!iTweenMoving && Input.GetKey("down") && posY <= 6-1)//↓
         {
+            iTween.RotateTo(this.gameObject, iTween.Hash("y", 90f, "time", 0.02f));
             if (height == 1 && Physics.Raycast(transform.position, Vector3.down, out dice, maxDistance))
             {
-                if (dice.collider.tag == "dice")
+                if (dice.collider.tag == "dice" && !transparentFlag)
                 {
                     remoteDice = dice.collider.gameObject.GetComponent<DiceControll>();
                    remoteDice.BackRotate();
@@ -127,7 +128,6 @@ public class Controller : MonoBehaviour
                 return;
             }
 
-            iTween.RotateTo(this.gameObject, iTween.Hash("y", 90f, "time", 0.02f));
             // 処理中のフラグをたてとく。
             iTweenMoving = true;
             iTween.MoveAdd(this.gameObject, iTween.Hash(
@@ -142,9 +142,10 @@ public class Controller : MonoBehaviour
 
         if (!iTweenMoving && Input.GetKey("left") && posX >= 1)//←
         {
+            iTween.RotateTo(this.gameObject, iTween.Hash("y", 180f, "time", 0.02f));
             if (height == 1 && Physics.Raycast(transform.position, Vector3.down, out dice, maxDistance))
             {
-                if (dice.collider.tag == "dice")
+                if (dice.collider.tag == "dice" && !transparentFlag)
                 {
                     remoteDice = dice.collider.gameObject.GetComponent<DiceControll>();
                     remoteDice.LeftRotate();
@@ -165,7 +166,6 @@ public class Controller : MonoBehaviour
                 forceStop = true;//強制停止フラグ初期化
                 return;
             }
-            iTween.RotateTo(this.gameObject, iTween.Hash("y", 180f, "time", 0.02f));
             // 処理中のフラグをたてとく。
             iTweenMoving = true;
             iTween.MoveAdd(this.gameObject, iTween.Hash(
@@ -181,9 +181,10 @@ public class Controller : MonoBehaviour
     
         if (!iTweenMoving && Input.GetKey("right") && posX <= 6-1)//→
         {
+            iTween.RotateTo(this.gameObject, iTween.Hash("y", 0f, "time", 0.02f));
             if(height == 1 && Physics.Raycast(transform.position, Vector3.down, out dice, maxDistance))
             {
-                if (dice.collider.tag == "dice")
+                if (dice.collider.tag == "dice" && !transparentFlag)
                 {
                     remoteDice = dice.collider.gameObject.GetComponent<DiceControll>();
                     remoteDice.RightRotate();
@@ -204,7 +205,6 @@ public class Controller : MonoBehaviour
                 forceStop = true;//強制停止フラグ初期化
                 return;
             }
-            iTween.RotateTo(this.gameObject, iTween.Hash("y", 0f, "time", 0.02f));
             // 処理中のフラグをたてとく。
             iTweenMoving = true;
             iTween.MoveAdd(this.gameObject, iTween.Hash(
@@ -221,7 +221,10 @@ public class Controller : MonoBehaviour
         {
             transparentFlag = true;
         }
-
+        if (Input.GetKeyUp(KeyCode.J))
+        {
+            transparentFlag = false;
+        }
         if (stageSetting.objinfo[posX, posY])
         {
             transform.position = new Vector3(transform.position.x, 1, transform.position.z);
@@ -246,6 +249,7 @@ public class Controller : MonoBehaviour
     
     void OnCompleteHandler()//itween終了時フラグ復帰
     {
+        transparentFlag = false;
         iTweenMoving = false;
     }
    

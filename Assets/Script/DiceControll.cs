@@ -37,7 +37,7 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
     int upNumber;//上面の数字
 
     [SerializeField]
-    int chainCount;//chein終端が上面の数以上ならbanish
+    public int chainCount=1;//chein終端が上面の数以上ならbanish
 
     GameObject firstChainObj;//コンボの発火点
     public bool banishFlag=false;//banish用フラグ trueでbanish
@@ -71,114 +71,174 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
 
     void ReceivePoint(GameObject chainFirstObj)
     {
-        int wasdCheckFlag;
+        int srowCT = 0;
 
-        wasdCheckFlag = 0;
+        Vector3 Raypos1 = transform.position;
+        Vector3 Raypos2 = transform.position;
+        Vector3 Raypos3 = transform.position;
+        Vector3 Raypos4 = transform.position;
+
+        Raypos1 += new Vector3(0, 0, 0.35f);
+        Raypos2 += new Vector3(0, 0, -0.35f);
+        Raypos3 += new Vector3(-0.35f, 0, 0);
+        Raypos4 += new Vector3(0.35f, 0, 0);
+
+        int wasdCheckFlag = 0;
         //上面数字更新判定 
         NumberCheck();
         chainCheckFlag = true;//二度付け禁止フラグオン
 
         firstDiceControll = chainFirstObj.GetComponent<DiceControll>();
-        firstDiceControll.chainCount += 1;
+       
+     
+        //四方上下にray + 数字更新  ここっから
+        RaycastHit receiveChain;//連鎖時用
+       
+        
+        //四方
+        if (Physics.Raycast(Raypos1, Vector3.forward, out receiveChain,rayMaxDistance))
+        {
+            if (receiveChain.collider.tag == "dice")
+            {
+                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
+              
+
+                if (chainDiceControll.chainCheckFlag == true||upNumber != chainDiceControll.upNumber ) { wasdCheckFlag += 1; }
+                else if (upNumber == chainDiceControll.upNumber && chainDiceControll.chainCheckFlag == false)
+                {
+                    firstDiceControll.chainCount += 1;
+                    chainDiceControll.ReceivePoint(chainFirstObj);
+                   // wasdCheckFlag = 0;
+
+                    srowCT += 1;
+                }
+            }
+        }else { wasdCheckFlag += 1; }
+        if (Physics.Raycast(Raypos2, Vector3.back, out receiveChain, rayMaxDistance))
+        {
+            if (receiveChain.collider.tag == "dice")
+            {
+                
+                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
+                if(chainDiceControll.chainCheckFlag == true||upNumber != chainDiceControll.upNumber ) { wasdCheckFlag += 1; }
+                else if (upNumber == chainDiceControll.upNumber && chainDiceControll.chainCheckFlag == false)
+                {
+                    firstDiceControll.chainCount += 1;
+                    chainDiceControll.ReceivePoint(chainFirstObj);
+                   // wasdCheckFlag = 0;
+
+                    srowCT += 1;
+                }
+            }
+        } else { wasdCheckFlag += 1; }
+
+
+        if (Physics.Raycast(Raypos3, Vector3.left, out receiveChain, rayMaxDistance))
+        {
+            if (receiveChain.collider.tag == "dice")
+            {
+                
+                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
+                if (chainDiceControll.chainCheckFlag == true||upNumber != chainDiceControll.upNumber ) { wasdCheckFlag += 1; }
+                else if (upNumber == chainDiceControll.upNumber && chainDiceControll.chainCheckFlag == false)
+                {
+                    firstDiceControll.chainCount += 1;
+                    chainDiceControll.ReceivePoint(chainFirstObj);
+                   // wasdCheckFlag = 0;
+
+                    srowCT += 1;
+                }
+            }
+        }else { wasdCheckFlag += 1; }
+        if (Physics.Raycast(Raypos4, Vector3.right, out receiveChain, rayMaxDistance))
+        {
+            if (receiveChain.collider.tag == "dice")
+            {
+               
+                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
+                if (chainDiceControll.chainCheckFlag == true||upNumber != chainDiceControll.upNumber ) { wasdCheckFlag += 1; }
+                else if (upNumber == chainDiceControll.upNumber && chainDiceControll.chainCheckFlag == false)
+                {
+                    firstDiceControll.chainCount += 1;
+                    chainDiceControll.ReceivePoint(chainFirstObj);
+                  //  wasdCheckFlag = 0;
+
+                    srowCT += 1;
+                }
+               
+            }
+            
+        }
+        else { wasdCheckFlag += 1; }
+
         if (firstDiceControll.chainCount >= firstDiceControll.upNumber)
         {
             banishFlag = true;
+            firstDiceControll.Banish();
             Banish();
 
         }
         else if (firstDiceControll.chainCount < firstDiceControll.upNumber)
         {
             bool stackChecker = false;
-            for (int i = 0; stackChecker == true;i++)
+            for (int i = 0; stackChecker == false; i++)
             {
-                if (firstDiceControll.stackControll[i]==null)
+                if (i >= 5)
+                {
+                    Debug.Log("stackControllの範囲外、要調査"+i);
+                    stackChecker = true;
+                    break;
+                }
+                if (firstDiceControll.stackControll[i] == null)
                 {
                     firstDiceControll.stackControll[i] = this.gameObject.GetComponent<DiceControll>();
                     stackChecker = true;
-                }
-                if (i >= 5)
-                {
-                    Debug.Log("stackControllの範囲外、要調査");
-                    stackChecker = true;
-                }
                     
-            }
-        }
-        //四方上下にray + 数字更新  ここっから
-        RaycastHit receiveChain;//連鎖時用
-       
-        
-        //四方
-        if (Physics.Raycast(transform.position, Vector3.forward, out receiveChain,rayMaxDistance))
-        {
-            if (receiveChain.collider.tag == "dice")
-            {
-                Debug.Log(receiveChain.collider.tag);
-                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
-                if (upNumber == chainDiceControll.upNumber&&chainDiceControll.chainCheckFlag==false)
-                {
-                    chainDiceControll.ReceivePoint(firstChainObj);
                 }
-                else { wasdCheckFlag += 1; }
-            }
-            
-        }
-        if (Physics.Raycast(transform.position, Vector3.back, out receiveChain, rayMaxDistance))
-        {
-            if (receiveChain.collider.tag == "dice")
-            {
-                Debug.Log(receiveChain.collider.tag);
-                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
-                if (upNumber == chainDiceControll.upNumber&&chainDiceControll.chainCheckFlag==false)
-                {
-                    chainDiceControll.ReceivePoint(firstChainObj);
-                }
-                else { wasdCheckFlag += 1; }
+
             }
         }
-        if (Physics.Raycast(transform.position, Vector3.left, out receiveChain, rayMaxDistance))
+
+        if (wasdCheckFlag >= 4 && firstDiceControll.chainCount >= firstDiceControll.upNumber)
         {
-            if (receiveChain.collider.tag == "dice")
-            {
-                Debug.Log(receiveChain.collider.tag);
-                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
-                if (upNumber == chainDiceControll.upNumber&&chainDiceControll.chainCheckFlag==false)
-                {
-                    chainDiceControll.ReceivePoint(firstChainObj);
-                }
-                else { wasdCheckFlag += 1; }
-            }
-        }
-        if (Physics.Raycast(transform.position, Vector3.right, out receiveChain, rayMaxDistance))
-        {
-            if (receiveChain.collider.tag == "dice")
-            {
-                Debug.Log(receiveChain.collider.tag);
-                chainDiceControll = receiveChain.collider.gameObject.GetComponent<DiceControll>();
-                if (upNumber == chainDiceControll.upNumber&&chainDiceControll.chainCheckFlag==false)
-                {
-                    chainDiceControll.ReceivePoint(firstChainObj);
-                }
-                else { wasdCheckFlag += 1; }
-            }
-        }
-        if(wasdCheckFlag == 4&& firstDiceControll.chainCount < firstDiceControll.upNumber)//連鎖数不足の場合chainncountを0に
-        {
-            firstDiceControll.chainCheckFlag = false;
-            firstDiceControll.chainCount = 0;
-        }
-        if (wasdCheckFlag == 4&&firstDiceControll.banishFlag==false && firstDiceControll.chainCount >= firstDiceControll.upNumber)
-        {
-            StackBanish();
+            Debug.Log(" StackBanish()");
+            firstDiceControll.StackBanish();//条件修正予定
+            firstDiceControll.Banish();
             firstDiceControll.banishFlag=true;
+            //firstDiceControll.chainCheckFlag = false;
+            //firstDiceControll.chainCount = 1;
         }
+        if (wasdCheckFlag >= 4&& firstDiceControll.chainCount < firstDiceControll.upNumber)//連鎖数不足の場合chainncountを0に
+        {
+            chainCheckFlag = false;
+            firstDiceControll.chainCheckFlag = false;
+            firstDiceControll.chainCount = 1;
+            for (int i = 0; i <= 4; i++)
+            {
+                if (firstDiceControll.stackControll[i] != null)
+                {
+                    firstDiceControll.stackControll[i].chainCheckFlag =false;
+                    Debug.Log("分岐点クリーナー");
+                }
+            }
+           
+            Debug.Log("投げた回数" + srowCT + "WASD" + wasdCheckFlag);
+        }
+
+        //
+        if (wasdCheckFlag <= 3)
+        {
+            Debug.Log("投げた回数"+srowCT+"WASD"+wasdCheckFlag+"続行");
+        }
+        //
+
     }
     
     void StackBanish()
     {
         for (int i = 0; i<=4; i++)
         {
-            if (firstDiceControll.stackControll[i] != null)
+            if (stackControll[i] != null)
             {
                 stackControll[i].banishFlag = true;
                 stackControll[i].Banish();
@@ -231,6 +291,8 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
         RaycastHit chain;//連鎖時用
         //上面数字更新判定
         NumberCheck();
+        //stack内掃除
+        CleanStack();
         //Raycast位置ずらし用vec3
         Vector3 Raypos1 = transform.position;
         Vector3 Raypos2 = transform.position;
@@ -256,6 +318,7 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
                 }
                 else if (upNumber == chainDiceControll.upNumber)
                 {
+                    chainCount += 1;
                     chainDiceControll.ReceivePoint(IgnitionPoint());
                 }
             }
@@ -273,6 +336,7 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
                 }
                 else if(upNumber == chainDiceControll.upNumber)
                 {
+                    chainCount += 1;
                     chainDiceControll.ReceivePoint(IgnitionPoint());
                 }
             }
@@ -290,6 +354,7 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
                 }
                 else if (upNumber == chainDiceControll.upNumber)
                 {
+                    chainCount += 1;
                     chainDiceControll.ReceivePoint(IgnitionPoint());
                 }
             }
@@ -307,6 +372,7 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
                 }
                 else if (upNumber == chainDiceControll.upNumber)
                 {
+                    chainCount += 1;
                     chainDiceControll.ReceivePoint(IgnitionPoint());
                 }
                 
@@ -456,9 +522,10 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
             bfDicePosX = dicePosX;
             bfDicePosZ = dicePosZ;
             dicePosZ -= 1;
-            iTween.MoveTo(gameObject, iTween.Hash("z", -dicePosZ, "time", 0.1f));
+            iTween.MoveTo(gameObject, iTween.Hash("z", -dicePosZ, "time", 0.1f, "oncomplete", "OnCompleteHandler",
+                "oncompletetarget", this.gameObject));
             stageSetting.InfoControll(dicePosX, dicePosZ, bfDicePosX, bfDicePosZ);//StageSetting側のフラグ処理
-            WASD_Checker();
+            
             return true;
         }
         else
@@ -466,7 +533,6 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
             return false;
         }
     }
-
     public bool BackSlide()
     {
         if (banishFlag)
@@ -478,9 +544,10 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
             bfDicePosX = dicePosX;
             bfDicePosZ = dicePosZ;
             dicePosZ += 1;
-            iTween.MoveTo(gameObject, iTween.Hash("z", -dicePosZ, "time", 0.1f));
+            iTween.MoveTo(gameObject, iTween.Hash("z", -dicePosZ, "time", 0.1f, "oncomplete", "OnCompleteHandler",
+                "oncompletetarget", this.gameObject));
             stageSetting.InfoControll(dicePosX, dicePosZ, bfDicePosX, bfDicePosZ);//StageSetting側のフラグ処理
-            WASD_Checker();
+            
             return true;
         }
         else
@@ -499,9 +566,10 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
             bfDicePosX = dicePosX;
             bfDicePosZ = dicePosZ;
             dicePosX -= 1;
-            iTween.MoveTo(gameObject, iTween.Hash("x", dicePosX, "time", 0.1f));
+            iTween.MoveTo(gameObject, iTween.Hash("x", dicePosX, "time", 0.1f, "oncomplete", "OnCompleteHandler",
+                "oncompletetarget", this.gameObject));
             stageSetting.InfoControll(dicePosX, dicePosZ, bfDicePosX, bfDicePosZ);//StageSetting側のフラグ処理
-            WASD_Checker();
+           
             return true;
         }
         else
@@ -520,9 +588,10 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
             bfDicePosX = dicePosX;
             bfDicePosZ = dicePosZ;
             dicePosX += 1;
-            iTween.MoveTo(gameObject, iTween.Hash("x", dicePosX, "time", 0.1f));
+            iTween.MoveTo(gameObject, iTween.Hash("x", dicePosX, "time", 0.1f, "oncomplete", "OnCompleteHandler",
+                "oncompletetarget", this.gameObject));
             stageSetting.InfoControll(dicePosX, dicePosZ, bfDicePosX, bfDicePosZ);//StageSetting側のフラグ処理
-            WASD_Checker();
+           
             return true;
         }
         else
@@ -531,7 +600,10 @@ public class DiceControll : MonoBehaviour {////////////////////stageSettingの�
         }
     }
 
-
+    void OnCompleteHandler()
+    {
+        WASD_Checker();
+    }
 
     IEnumerator MoveCube()
     {
