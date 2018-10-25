@@ -251,6 +251,7 @@ public class Controller : MonoBehaviour
     {
         transparentFlag = false;
         iTweenMoving = false;
+        transform.position = new Vector3(posX, transform.position.y, -posY);
     }
    
 }

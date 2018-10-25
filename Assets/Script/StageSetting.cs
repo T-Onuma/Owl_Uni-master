@@ -21,9 +21,12 @@ public class StageSetting : MonoBehaviour {
 
     public bool[,] objinfo=new bool[7,7];//12*12 false,無し　true,有り
 
-    
+    private int score;
   
-
+    public void scorePlus(int diceScore)
+    {
+        score += diceScore;
+    }
         // Use this for initialization
         void Start ()
     {
